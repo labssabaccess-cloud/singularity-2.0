@@ -74,7 +74,15 @@ function ConnectorLines({
   );
 }
 
-function CategoryLabel({ label, x, y }: { label: string; x: number; y: number }) {
+function CategoryLabel({
+  label,
+  x,
+  y,
+}: {
+  label: string;
+  x: number;
+  y: number;
+}) {
   return (
     <div
       style={{
@@ -109,10 +117,10 @@ function AmbientParticles() {
     () =>
       Array.from({ length: 24 }, (_, i) => ({
         id: i,
-        x: ((i * 79 + 31) % 100),
-        y: ((i * 53 + 17) % 100),
-        size: 1 + ((i * 7) % 3),
-        dur: 12 + ((i * 3) % 16),
+        x: (i * 79 + 31) % 100,
+        y: (i * 53 + 17) % 100,
+        size: 1 + (i * 7) % 3,
+        dur: 12 + (i * 3) % 16,
         delay: ((i * 19) % 80) / 10,
         color:
           i % 3 === 0
@@ -126,7 +134,14 @@ function AmbientParticles() {
 
   if (!mounted) return null;
   return (
-    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        zIndex: 0,
+      }}
+    >
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -152,109 +167,10 @@ function AmbientParticles() {
   );
 }
 
-// ─── Mobile card layout (<640px) ─────────────────────────────────────────────────
-function MobileBubbleMap({ onToolClick }: { onToolClick: (tool: Tool) => void }) {
-  const anchor = TOOLS.find((t) => t.size === "anchor");
-  const ready = TOOLS.filter((t) => t.ready && t.size !== "anchor");
-  const coming = TOOLS.filter((t) => !t.ready);
-
-  const CardItem = ({ tool, i }: { tool: Tool; i: number }) => (
-    <motion.button
-      key={tool.id}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: i * 0.04, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      whileTap={{ scale: 0.96 }}
-      onClick={() => onToolClick(tool)}
-      aria-label={tool.name}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "10px 14px",
-        background: tool.ready ? tool.color : "rgba(255,255,255,0.03)",
-        border: `1px solid ${ tool.ready ? tool.glowColor.replace("0.55","0.35").replace("0.3","0.25") : "rgba(255,255,255,0.07)" }`,
-        borderRadius: 12,
-        cursor: "pointer",
-        textAlign: "left",
-        boxShadow: tool.ready ? `0 0 12px ${tool.glowColor.replace("0.55","0.2").replace("0.3","0.15")}` : "none",
-      }}
-    >
-      <div style={{
-        width: 32, height: 32, borderRadius: "50%",
-        background: tool.ready ? tool.glowColor.replace("0.55","0.18").replace("0.3","0.14") : "rgba(255,255,255,0.05)",
-        border: `1px solid ${ tool.ready ? tool.glowColor.replace("0.55","0.3").replace("0.3","0.22") : "rgba(255,255,255,0.09)" }`,
-        flexShrink: 0,
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>
-        <span style={{ fontSize: "0.6rem", fontWeight: 700, color: tool.ready ? tool.textColor : "rgba(250,250,250,0.25)", letterSpacing: "0.04em" }}>
-          {tool.name.slice(0,2).toUpperCase()}
-        </span>
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: "0.8rem", fontWeight: 600, color: tool.ready ? tool.textColor : "rgba(250,250,250,0.3)", marginBottom: 1 }}>{tool.name}</p>
-        {tool.tagline && <p style={{ fontSize: "0.65rem", color: tool.ready ? tool.textColor.replace(")",", 0.6)").replace("rgb","rgba") : "rgba(250,250,250,0.18)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tool.tagline}</p>}
-      </div>
-      {tool.ready
-        ? <span style={{ fontSize: "0.58rem", color: tool.textColor, opacity: 0.6, letterSpacing: "0.06em", textTransform: "uppercase", flexShrink: 0 }}>Ready</span>
-        : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(250,250,250,0.2)" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      }
-    </motion.button>
-  );
-
-  return (
-    <div style={{ overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Anchor */}
-      {anchor && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => onToolClick(anchor)}
-          style={{
-            padding: "18px 20px",
-            background: anchor.color,
-            border: `1.5px solid ${anchor.glowColor.replace("0.55","0.5").replace("0.3","0.35")}`,
-            borderRadius: 18,
-            cursor: "pointer",
-            textAlign: "center",
-            boxShadow: `0 0 32px ${anchor.glowColor.replace("0.55","0.3").replace("0.3","0.22")}`,
-          }}
-        >
-          <p style={{ fontSize: "1.1rem", fontWeight: 700, color: anchor.textColor, letterSpacing: "-0.01em", marginBottom: 4 }}>{anchor.name}</p>
-          {anchor.tagline && <p style={{ fontSize: "0.75rem", color: anchor.textColor, opacity: 0.65 }}>{anchor.tagline}</p>}
-        </motion.button>
-      )}
-
-      {/* Ready tools */}
-      {ready.length > 0 && (
-        <div>
-          <p style={{ fontSize: "0.6rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(250,250,250,0.28)", marginBottom: 8, paddingLeft: 2 }}>Ready to explore</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {ready.map((t, i) => <CardItem key={t.id} tool={t} i={i} />)}
-          </div>
-        </div>
-      )}
-
-      {/* Coming soon */}
-      {coming.length > 0 && (
-        <div>
-          <p style={{ fontSize: "0.6rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(250,250,250,0.18)", marginBottom: 8, paddingLeft: 2 }}>Coming soon</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {coming.map((t, i) => <CardItem key={t.id} tool={t} i={i} />)}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState({ w: 1200, h: 700 });
   const [completed, setCompleted] = useState<Set<string>>(new Set());
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setCompleted(getCompleted());
@@ -268,7 +184,6 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
       if (containerRef.current) {
         const r = containerRef.current.getBoundingClientRect();
         setDims({ w: r.width, h: r.height });
-        setIsMobile(r.width < 640);
       }
     };
     measure();
@@ -285,13 +200,27 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
 
     const positions = TOOLS.map((tool) => {
       if (tool.size === "anchor") {
-        return { id: tool.id, cx, cy, x: cx - SIZE_MAP.anchor / 2, y: cy - SIZE_MAP.anchor / 2, ready: tool.ready };
+        return {
+          id: tool.id,
+          cx,
+          cy,
+          x: cx - SIZE_MAP.anchor / 2,
+          y: cy - SIZE_MAP.anchor / 2,
+          ready: tool.ready,
+        };
       }
       const angleRad = (tool.angle * Math.PI) / 180;
       const r = tool.radius * scale;
       const px = cx + Math.cos(angleRad) * r;
       const py = cy + Math.sin(angleRad) * r;
-      return { id: tool.id, cx: px, cy: py, x: px - SIZE_MAP[tool.size] / 2, y: py - SIZE_MAP[tool.size] / 2, ready: tool.ready };
+      return {
+        id: tool.id,
+        cx: px,
+        cy: py,
+        x: px - SIZE_MAP[tool.size] / 2,
+        y: py - SIZE_MAP[tool.size] / 2,
+        ready: tool.ready,
+      };
     });
 
     const categoryAngles: Record<string, number[]> = {};
@@ -315,7 +244,11 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
       const avg = angles.reduce((a, b) => a + b, 0) / angles.length;
       const rad = (avg * Math.PI) / 180;
       const labelR = 70 * scale * 1.2;
-      categoryLabels.push({ label: CAT_LABELS[cat] ?? cat, x: cx + Math.cos(rad) * labelR, y: cy + Math.sin(rad) * labelR });
+      categoryLabels.push({
+        label: CAT_LABELS[cat] ?? cat,
+        x: cx + Math.cos(rad) * labelR,
+        y: cy + Math.sin(rad) * labelR,
+      });
     });
 
     return { positions, centerX: cx, centerY: cy, categoryLabels };
@@ -324,11 +257,39 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
   return (
     <div
       ref={containerRef}
-      style={{ position: "relative", width: "100%", height: "100%", minHeight: 560, overflow: "hidden" }}
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        minHeight: 560,
+        overflow: "hidden",
+      }}
     >
-      {isMobile ? (
-        <MobileBubbleMap onToolClick={onToolClick} />
-      ) : (
-        <>
-          <AmbientParticles />
-          <Connecto
+      <AmbientParticles />
+      <ConnectorLines
+        centerX={centerX}
+        centerY={centerY}
+        positions={positions}
+      />
+
+      {categoryLabels.map((cl) => (
+        <CategoryLabel key={cl.label} label={cl.label} x={cl.x} y={cl.y} />
+      ))}
+
+      {TOOLS.map((tool, i) => {
+        const pos = positions.find((p) => p.id === tool.id)!;
+        const isDone = completed.has(tool.id);
+        return (
+          <BubbleNode
+            key={tool.id}
+            tool={tool}
+            index={i}
+            style={{ left: pos.x, top: pos.y }}
+            onClick={onToolClick}
+            completed={isDone}
+          />
+        );
+      })}
+    </div>
+  );
+}
