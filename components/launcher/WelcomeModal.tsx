@@ -39,8 +39,8 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(10px)",
+            background: "rgba(0,0,0,0.58)",
+            backdropFilter: "blur(14px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -55,15 +55,16 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
             transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "rgba(12,12,18,0.98)",
-              border: "1px solid rgba(99,102,241,0.25)",
+              background: "rgba(12,12,20,0.97)",
+              border: "1px solid rgba(255,255,255,0.09)",
               borderRadius: "24px",
               padding: "44px 40px 36px",
               maxWidth: "480px",
               width: "100%",
               position: "relative",
+              backdropFilter: "blur(20px)",
               boxShadow:
-                "0 0 80px rgba(99,102,241,0.1), 0 40px 80px rgba(0,0,0,0.65)",
+                "0 0 80px rgba(99,102,241,0.08), 0 40px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)",
             }}
           >
             <button
@@ -74,7 +75,7 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 top: 14,
                 right: 14,
                 background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.09)",
                 borderRadius: "8px",
                 width: 32,
                 height: 32,
@@ -95,12 +96,12 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                 width: 56,
                 height: 56,
                 borderRadius: "50%",
-                border: "1.5px solid rgba(99,102,241,0.4)",
+                border: "1.5px solid rgba(99,102,241,0.35)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 marginBottom: "20px",
-                background: "rgba(99,102,241,0.08)",
+                background: "rgba(99,102,241,0.07)",
               }}
             >
               <span style={{ fontSize: "22px" }}>🚀</span>
@@ -120,29 +121,41 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
             <p
               style={{
                 fontSize: "0.9rem",
-                color: "rgba(250,250,250,0.5)",
+                color: "rgba(250,250,250,0.45)",
                 marginBottom: "32px",
                 lineHeight: 1.6,
               }}
             >
-              Your interactive map of AI — explore tools, learn through experience, and build real intuition.
+              Your interactive map of AI — explore tools, learn through
+              experience, and build real intuition.
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "32px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                marginBottom: "32px",
+              }}
+            >
               {STEPS.map((step, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.15 + i * 0.1, duration: 0.5, ease: [0.16,1,0.3,1] }}
+                  transition={{
+                    delay: 0.15 + i * 0.1,
+                    duration: 0.5,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
                   style={{
                     display: "flex",
                     gap: "14px",
                     alignItems: "flex-start",
-                    padding: "14px 16px",
-                    background: "rgba(255,255,255,0.03)",
-                    borderRadius: "12px",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    padding: "13px 15px",
+                    background: "rgba(255,255,255,0.025)",
+                    borderRadius: "14px",
+                    border: "1px solid rgba(255,255,255,0.055)",
                   }}
                 >
                   <div
@@ -150,21 +163,34 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
                       width: 36,
                       height: 36,
                       borderRadius: "10px",
-                      background: "rgba(99,102,241,0.12)",
-                      border: "1px solid rgba(99,102,241,0.25)",
+                      background: "rgba(99,102,241,0.1)",
+                      border: "1px solid rgba(99,102,241,0.22)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <step.icon size={16} color="rgba(99,102,241,0.85)" />
+                    <step.icon size={16} color="rgba(99,102,241,0.8)" />
                   </div>
                   <div>
-                    <p style={{ fontSize: "0.88rem", fontWeight: 600, color: "#FAFAFA", marginBottom: "3px" }}>
+                    <p
+                      style={{
+                        fontSize: "0.88rem",
+                        fontWeight: 600,
+                        color: "#FAFAFA",
+                        marginBottom: "3px",
+                      }}
+                    >
                       {step.title}
                     </p>
-                    <p style={{ fontSize: "0.8rem", color: "rgba(250,250,250,0.45)", lineHeight: 1.55 }}>
+                    <p
+                      style={{
+                        fontSize: "0.8rem",
+                        color: "rgba(250,250,250,0.4)",
+                        lineHeight: 1.55,
+                      }}
+                    >
                       {step.desc}
                     </p>
                   </div>
@@ -179,8 +205,8 @@ export default function WelcomeModal({ open, onClose }: WelcomeModalProps) {
               style={{
                 width: "100%",
                 padding: "14px",
-                background: "rgba(99,102,241,0.15)",
-                border: "1px solid rgba(99,102,241,0.35)",
+                background: "rgba(99,102,241,0.13)",
+                border: "1px solid rgba(99,102,241,0.3)",
                 borderRadius: "14px",
                 color: "#818cf8",
                 fontSize: "0.9rem",
