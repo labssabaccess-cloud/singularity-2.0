@@ -25,8 +25,8 @@ export async function POST(req: Request) {
       model: "gemini-2.0-flash",
       config: {
         systemInstruction: config.systemInstruction,
-        temperature: 0.8,
-        maxOutputTokens: 1024,
+        temperature: config.temperature,
+        maxOutputTokens: config.maxOutputTokens,
       },
       history,
     });
