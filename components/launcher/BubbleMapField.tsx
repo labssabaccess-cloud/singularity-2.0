@@ -36,12 +36,14 @@ function ConnectorLines({
         const tool = TOOLS.find((t) => t.id === p.id);
         if (tool?.size === "anchor") return null;
         const isReady = tool?.ready;
+        // Use <motion.path> with d attribute — pathLength only works on <path>, not <line>
         return isReady ? (
-          <motion.line
+          <motion.path
             key={p.id}
-            x1={centerX} y1={centerY} x2={p.cx} y2={p.cy}
-            stroke={tool!.glowColor.replace("0.55", "0.4")}
+            d={`M ${centerX} ${centerY} L ${p.cx} ${p.cy}`}
+            stroke={tool!.glowColor.replace("0.55", "0.5")}
             strokeWidth="1.5"
+            fill="none"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
             transition={{ duration: 1.2, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -52,7 +54,7 @@ function ConnectorLines({
             x1={centerX} y1={centerY} x2={p.cx} y2={p.cy}
             stroke="rgba(250,250,250,0.04)"
             strokeWidth="1"
-            strokeDasharray="3 7"
+            strokeDasharray="3 8"
           />
         );
       })}
@@ -150,17 +152,19 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
   const { positions, centerX, centerY, categoryLabels } = useMemo(() => {
     const cx = dims.w / 2;
     const cy = dims.h / 2;
-    // Use 46% of the shorter dimension so bubbles spread to edges
+
+    // Scale radius so the outermost bubble (radius:70 in data) maps to
+    // ~44% of the shorter viewport dimension — keeps everything on-screen
+    // and gives ~1 bubble-diameter of breathing room from the edge.
     const shortSide = Math.min(dims.w, dims.h);
-    const maxR = shortSide * 0.46;
+    const scale = (shortSide * 0.44) / 70;
 
     const positions = TOOLS.map((tool) => {
       if (tool.size === "anchor") {
         return { id: tool.id, cx, cy, x: cx - SIZE_MAP.anchor / 2, y: cy - SIZE_MAP.anchor / 2, ready: tool.ready };
       }
       const angleRad = (tool.angle * Math.PI) / 180;
-      // Scale radius so largest value (64) maps to maxR, with extra breathing room
-      const r = maxR * (tool.radius / 58);
+      const r = tool.radius * scale;
       const px = cx + Math.cos(angleRad) * r;
       const py = cy + Math.sin(angleRad) * r;
       return {
@@ -173,7 +177,7 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
       };
     });
 
-    // Category arc labels — place them slightly beyond the outermost ring
+    // Category arc labels — placed 18% beyond outermost data radius
     const categoryAngles: Record<string, number[]> = {};
     TOOLS.forEach((t) => {
       if (t.size === "anchor") return;
@@ -192,7 +196,7 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
     Object.entries(categoryAngles).forEach(([cat, angles]) => {
       const avg = angles.reduce((a, b) => a + b, 0) / angles.length;
       const rad = (avg * Math.PI) / 180;
-      const labelR = maxR * 1.16;
+      const labelR = 70 * scale * 1.18;
       categoryLabels.push({
         label: CAT_LABELS[cat] ?? cat,
         x: cx + Math.cos(rad) * labelR,

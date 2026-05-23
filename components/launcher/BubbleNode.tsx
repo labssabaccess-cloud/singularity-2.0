@@ -17,6 +17,14 @@ export default function BubbleNode({ tool, index, style, onClick, completed = fa
   const size = SIZE_MAP[tool.size];
   const isReady = tool.ready;
 
+  // Dynamic font size: shrink for long names so text stays inside bubble
+  const nameFontSize =
+    tool.size === "anchor"
+      ? tool.name.length > 14 ? "0.62rem" : "0.72rem"
+      : tool.size === "large" ? "0.7rem"
+      : tool.size === "medium" ? "0.65rem"
+      : "0.58rem";
+
   return (
     <motion.button
       initial={{ opacity: 0, scale: 0.6 }}
@@ -63,7 +71,7 @@ export default function BubbleNode({ tool, index, style, onClick, completed = fa
         overflow: "hidden",
       }}
     >
-      {/* Pulse ring for ready/completed bubbles */}
+      {/* Pulse ring for ready / completed bubbles */}
       {(isReady || completed) && (
         <motion.div
           animate={{
@@ -127,7 +135,7 @@ export default function BubbleNode({ tool, index, style, onClick, completed = fa
 
       <span
         style={{
-          fontSize: tool.size === "anchor" ? "0.75rem" : tool.size === "large" ? "0.7rem" : tool.size === "medium" ? "0.65rem" : "0.58rem",
+          fontSize: nameFontSize,
           fontWeight: 600,
           color: isReady ? tool.textColor : "rgba(250,250,250,0.38)",
           textAlign: "center",
