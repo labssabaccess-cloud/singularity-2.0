@@ -24,8 +24,8 @@ export default function InDevModal({ tool, onClose }: InDevModalProps) {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.55)",
-            backdropFilter: "blur(8px)",
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(12px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -40,14 +40,15 @@ export default function InDevModal({ tool, onClose }: InDevModalProps) {
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "rgba(17,17,17,0.97)",
-              border: `1px solid ${tool.glowColor.replace("0.55", "0.25").replace("0.3", "0.2")}`,
-              borderRadius: "20px",
+              background: "rgba(12,12,22,0.97)",
+              border: `1px solid rgba(255,255,255,0.09)`,
+              borderRadius: "24px",
               padding: "40px 36px 32px",
               maxWidth: "440px",
               width: "100%",
               position: "relative",
-              boxShadow: `0 0 80px ${tool.glowColor.replace("0.55", "0.1").replace("0.3", "0.08")}, 0 32px 64px rgba(0,0,0,0.6)`,
+              backdropFilter: "blur(24px)",
+              boxShadow: `0 0 80px ${tool.glowColor.replace("0.55", "0.08").replace("0.3", "0.06")}, 0 32px 64px rgba(0,0,0,0.5)`,
             }}
           >
             <button
@@ -107,24 +108,25 @@ export default function InDevModal({ tool, onClose }: InDevModalProps) {
                 fontSize: "1.35rem",
                 fontWeight: 600,
                 color: "#FAFAFA",
-                marginBottom: "8px",
+                marginBottom: "6px",
                 letterSpacing: "-0.01em",
               }}
             >
               {tool.name}
             </h2>
 
-            <p
-              style={{
-                fontSize: "0.82rem",
-                color: tool.textColor,
-                opacity: 0.7,
-                marginBottom: "20px",
-                letterSpacing: "0.01em",
-              }}
-            >
-              {tool.tagline}
-            </p>
+            {tool.tagline && (
+              <p
+                style={{
+                  fontSize: "0.82rem",
+                  color: "rgba(250,250,250,0.4)",
+                  marginBottom: "18px",
+                  lineHeight: 1.5,
+                }}
+              >
+                {tool.tagline}
+              </p>
+            )}
 
             <div
               style={{
@@ -132,16 +134,21 @@ export default function InDevModal({ tool, onClose }: InDevModalProps) {
                 alignItems: "center",
                 gap: "7px",
                 padding: "6px 14px",
-                background: "rgba(255,200,50,0.08)",
-                border: "1px solid rgba(255,200,50,0.2)",
+                background: "rgba(255,200,50,0.07)",
+                border: "1px solid rgba(255,200,50,0.18)",
                 borderRadius: "999px",
-                marginBottom: "24px",
+                marginBottom: "22px",
               }}
             >
               <motion.div
                 animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
-                style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,200,50,0.8)" }}
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "rgba(255,200,50,0.8)",
+                }}
               />
               <span
                 style={{
@@ -159,13 +166,17 @@ export default function InDevModal({ tool, onClose }: InDevModalProps) {
             <p
               style={{
                 fontSize: "0.87rem",
-                color: "rgba(250,250,250,0.5)",
+                color: "rgba(250,250,250,0.45)",
                 lineHeight: 1.65,
                 marginBottom: "28px",
               }}
             >
-              A full Singularity experience for <strong style={{ color: "rgba(250,250,250,0.8)" }}>{tool.name}</strong> is
-              currently being crafted. Check back soon — it’ll be worth the wait.
+              A full Singularity experience for{" "}
+              <strong style={{ color: "rgba(250,250,250,0.8)" }}>
+                {tool.name}
+              </strong>{" "}
+              is currently being crafted. Check back soon — it’ll be worth the
+              wait.
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -177,8 +188,10 @@ export default function InDevModal({ tool, onClose }: InDevModalProps) {
                   display: "block",
                   padding: "12px 20px",
                   background: tool.color,
-                  border: `1px solid ${tool.glowColor.replace("0.55", "0.4").replace("0.3", "0.3")}`,
-                  borderRadius: "12px",
+                  border: `1px solid ${tool.glowColor
+                    .replace("0.55", "0.4")
+                    .replace("0.3", "0.3")}`,
+                  borderRadius: "14px",
                   color: tool.textColor,
                   fontSize: "0.85rem",
                   fontWeight: 600,
@@ -196,9 +209,9 @@ export default function InDevModal({ tool, onClose }: InDevModalProps) {
                 style={{
                   padding: "11px 20px",
                   background: "transparent",
-                  border: "1px solid rgba(250,250,250,0.1)",
-                  borderRadius: "12px",
-                  color: "rgba(250,250,250,0.45)",
+                  border: "1px solid rgba(250,250,250,0.09)",
+                  borderRadius: "14px",
+                  color: "rgba(250,250,250,0.4)",
                   fontSize: "0.84rem",
                   cursor: "pointer",
                 }}
