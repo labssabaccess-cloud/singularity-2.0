@@ -106,13 +106,15 @@ export default function BubbleNode({
               position: "absolute",
               inset: 0,
               borderRadius: "50%",
-              background: `radial-gradient(circle at 38% 32%, ${tool.glowColor.replace("0.55", "0.14").replace("0.3", "0.1")} 0%, transparent 68%)`,
+              background: `radial-gradient(circle at 38% 32%, ${tool.glowColor
+                .replace("0.55", "0.14")
+                .replace("0.3", "0.1")} 0%, transparent 68%)`,
               pointerEvents: "none",
             }}
           />
         )}
 
-        {/* Pulse ring for ready / completed bubbles */}
+        {/* Pulse ring for ready / completed */}
         {(isReady || completed) && (
           <motion.div
             animate={{ scale: [1, 1.65], opacity: [0.3, 0] }}
@@ -126,7 +128,9 @@ export default function BubbleNode({
               position: "absolute",
               inset: 0,
               borderRadius: "50%",
-              border: `1px solid ${tool.glowColor.replace("0.55", "0.45").replace("0.3", "0.3")}`,
+              border: `1px solid ${tool.glowColor
+                .replace("0.55", "0.45")
+                .replace("0.3", "0.3")}`,
               pointerEvents: "none",
             }}
           />
@@ -144,7 +148,9 @@ export default function BubbleNode({
               width: size > 80 ? 18 : 14,
               height: size > 80 ? 18 : 14,
               borderRadius: "50%",
-              background: tool.glowColor.replace("0.55", "0.85").replace("0.3", "0.75"),
+              background: tool.glowColor
+                .replace("0.55", "0.85")
+                .replace("0.3", "0.75"),
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -211,7 +217,7 @@ export default function BubbleNode({
             style={{
               fontSize: "0.52rem",
               color: isReady
-                ? tool.textColor.replace(")", ", 0.55)").replace("rgb", "rgba")
+                ? "rgba(255,255,255,0.45)"
                 : "rgba(250,250,250,0.18)",
               textAlign: "center",
               letterSpacing: "0.06em",
