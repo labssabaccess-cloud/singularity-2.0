@@ -1,99 +1,140 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import type { Tool, BubbleSize } from "@/lib/tools";
+import type { Tool } from "@/lib/tools";
 
-const SIZE_MAP: Record<BubbleSize, number> = {
-  anchor: 130,
-  large:  100,
-  medium:  78,
-  small:   58,
-};
+const SIZE_MAP = { anchor: 130, large: 105, medium: 82, small: 62 } as const;
 
 interface BubbleNodeProps {
   tool: Tool;
-  style?: React.CSSProperties;
-  onClick: (tool: Tool) => void;
   index: number;
+  style: { left: number; top: number };
+  onClick: (tool: Tool) => void;
+  completed?: boolean;
 }
 
-export default function BubbleNode({ tool, style, onClick, index }: BubbleNodeProps) {
-  const [hovered, setHovered] = useState(false);
-  const diameter = SIZE_MAP[tool.size];
+export default function BubbleNode({ tool, index, style, onClick, completed = false }: BubbleNodeProps) {
+  const size = SIZE_MAP[tool.size];
+  const isReady = tool.ready;
 
   return (
-    <motion.div
-      role="button"
-      tabIndex={0}
-      aria-label={`${tool.name}${ tool.ready ? "" : " (in development)" }`}
-      initial={{ opacity: 0, scale: 0.4 }}
+    <motion.button
+      initial={{ opacity: 0, scale: 0.6 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{
-        delay: 0.06 * index,
-        duration: 0.7,
+        delay: index * 0.04,
+        duration: 0.55,
         ease: [0.16, 1, 0.3, 1],
       }}
-      whileHover={{ scale: tool.ready ? 1.14 : 1.07 }}
-      whileTap={{ scale: 0.96 }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(tool); }}
+      whileHover={{ scale: 1.1, transition: { duration: 0.2 } }}
+      whileTap={{ scale: 0.95 }}
       onClick={() => onClick(tool)}
+      aria-label={`${tool.name}${!isReady ? " — in development" : ""}`}
       style={{
-        width:    diameter,
-        height:   diameter,
+        position: "absolute",
+        left: style.left,
+        top: style.top,
+        width: size,
+        height: size,
         borderRadius: "50%",
+        background: completed
+          ? tool.color.replace(/[\d.]+\)$/, "0.28)")
+          : tool.color,
+        border: `1.5px solid ${
+          completed
+            ? tool.glowColor.replace("0.55", "0.7").replace("0.3", "0.55")
+            : isReady
+            ? tool.glowColor.replace("0.55", "0.45").replace("0.3", "0.3")
+            : "rgba(255,255,255,0.07)"
+        }`,
+        boxShadow: completed
+          ? `0 0 24px ${tool.glowColor.replace("0.55", "0.35").replace("0.3", "0.25")}, 0 0 48px ${tool.glowColor.replace("0.55", "0.15").replace("0.3", "0.1")}`
+          : isReady
+          ? `0 0 18px ${tool.glowColor.replace("0.55", "0.25").replace("0.3", "0.18")}`
+          : "none",
+        cursor: "pointer",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         gap: "4px",
-        cursor: "pointer",
-        position: "absolute",
-        background: tool.color,
-        border: `1px solid ${
-          tool.ready
-            ? `${ tool.glowColor.replace("0.55", "0.35") }`
-            : "rgba(250,250,250,0.06)"
-        }`,
-        boxShadow: hovered && tool.ready
-          ? `0 0 32px ${tool.glowColor}, 0 0 64px ${tool.glowColor.replace("0.55", "0.18")}, inset 0 1px 0 rgba(255,255,255,0.08)`
-          : tool.ready
-          ? `0 0 14px ${tool.glowColor.replace("0.55", "0.22")}, inset 0 1px 0 rgba(255,255,255,0.05)`
-          : "none",
-        backdropFilter: "blur(12px)",
-        transition: "box-shadow 0.3s ease",
-        userSelect: "none",
-        outline: "none",
-        ...style,
+        padding: "8px",
+        zIndex: tool.size === "anchor" ? 10 : 5,
+        overflow: "hidden",
       }}
     >
-      {/* Pulse ring for ready nodes */}
-      {tool.ready && (
+      {/* Pulse ring for ready/completed bubbles */}
+      {(isReady || completed) && (
         <motion.div
+          animate={{
+            scale: [1, 1.6],
+            opacity: [0.35, 0],
+          }}
+          transition={{
+            duration: 2.2,
+            repeat: Infinity,
+            ease: "easeOut",
+            delay: index * 0.15,
+          }}
           style={{
             position: "absolute",
-            inset: -6,
+            inset: 0,
             borderRadius: "50%",
-            border: `1.5px solid ${tool.glowColor.replace("0.55", "0.35")}`  ,
+            border: `1px solid ${tool.glowColor.replace("0.55", "0.5").replace("0.3", "0.35")}`,
             pointerEvents: "none",
           }}
-          animate={{ scale: [1, 1.18, 1], opacity: [0.7, 0, 0.7] }}
-          transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
 
-      {/* Label */}
+      {/* Completed checkmark badge */}
+      {completed && (
+        <div
+          style={{
+            position: "absolute",
+            top: size > 80 ? 8 : 4,
+            right: size > 80 ? 8 : 4,
+            width: size > 80 ? 18 : 14,
+            height: size > 80 ? 18 : 14,
+            borderRadius: "50%",
+            background: tool.glowColor.replace("0.55", "0.8").replace("0.3", "0.7"),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+            <polyline points="1.5,5 4,7.5 8.5,2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )}
+
+      {/* Lock icon for in-dev */}
+      {!isReady && (
+        <div
+          style={{
+            position: "absolute",
+            top: size > 80 ? 8 : 4,
+            right: size > 80 ? 8 : 4,
+            opacity: 0.4,
+          }}
+        >
+          <svg width={size > 80 ? 12 : 9} height={size > 80 ? 12 : 9} viewBox="0 0 24 24" fill="none" stroke="rgba(250,250,250,0.6)" strokeWidth="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+      )}
+
       <span
         style={{
-          fontSize: tool.size === "anchor" ? "11px" : tool.size === "large" ? "10px" : "9px",
+          fontSize: tool.size === "anchor" ? "0.75rem" : tool.size === "large" ? "0.7rem" : tool.size === "medium" ? "0.65rem" : "0.58rem",
           fontWeight: 600,
-          letterSpacing: "0.04em",
+          color: isReady ? tool.textColor : "rgba(250,250,250,0.38)",
           textAlign: "center",
-          lineHeight: 1.25,
-          color: tool.ready ? tool.textColor : "rgba(250,250,250,0.32)",
-          paddingInline: "8px",
+          lineHeight: 1.2,
+          letterSpacing: "0.02em",
+          maxWidth: size - 16,
+          wordBreak: "break-word",
           pointerEvents: "none",
           zIndex: 1,
         }}
@@ -101,35 +142,21 @@ export default function BubbleNode({ tool, style, onClick, index }: BubbleNodePr
         {tool.name}
       </span>
 
-      {/* Ready badge */}
-      {tool.ready && (
+      {tool.size !== "small" && (
         <span
           style={{
-            fontSize: "7px",
-            fontWeight: 700,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: tool.textColor,
-            opacity: 0.75,
+            fontSize: "0.52rem",
+            color: "rgba(250,250,250,0.22)",
+            textAlign: "center",
+            lineHeight: 1.2,
+            maxWidth: size - 20,
+            letterSpacing: "0.03em",
             pointerEvents: "none",
           }}
         >
-          LIVE
+          {isReady ? "Ready" : "Soon"}
         </span>
       )}
-
-      {/* Lock icon for dev */}
-      {!tool.ready && (
-        <svg
-          width="10" height="10"
-          viewBox="0 0 24 24"
-          fill="rgba(250,250,250,0.22)"
-          style={{ pointerEvents: "none" }}
-        >
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="rgba(250,250,250,0.22)" strokeWidth="2" />
-        </svg>
-      )}
-    </motion.div>
+    </motion.button>
   );
 }

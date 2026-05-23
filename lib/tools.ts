@@ -14,19 +14,28 @@ export interface Tool {
   name: string;
   ready: boolean;
   category: ToolCategory;
-  color: string;          // bubble fill color (soft)
-  glowColor: string;      // glow rgba
-  textColor: string;      // label color
+  color: string;
+  glowColor: string;
+  textColor: string;
   size: BubbleSize;
-  /** 0–360 angle from center, used for deterministic layout */
   angle: number;
-  /** distance from center in %, used for layout */
   radius: number;
   tagline: string;
 }
 
+// Category metadata for visual grouping labels
+export const CATEGORY_META: Record<ToolCategory, { label: string; angle: number }> = {
+  core:        { label: "Core",         angle: 0   },
+  "ai-chat":   { label: "AI Chat",      angle: 15  },
+  "image-gen": { label: "Image AI",     angle: 130 },
+  "video-gen": { label: "Video AI",     angle: 230 },
+  "audio-gen": { label: "Audio AI",     angle: 280 },
+  productivity:{ label: "Productivity", angle: 185 },
+  dev:         { label: "Dev & ML",     angle: 68  },
+};
+
 export const TOOLS: Tool[] = [
-  // ── Core anchor (center) ────────────────────────────────────────────
+  // ── Core anchor (center) ─────────────────────────────────────────────
   {
     id: "prompt-engineering",
     name: "Prompt Engineering",
@@ -40,7 +49,7 @@ export const TOOLS: Tool[] = [
     radius: 0,
     tagline: "Master the art of AI communication",
   },
-  // ── Large ready node ────────────────────────────────────────────────
+  // ── AI Chat ───────────────────────────────────────────────────────────
   {
     id: "gemini",
     name: "Gemini",
@@ -50,11 +59,10 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(59,130,246,0.55)",
     textColor: "#60a5fa",
     size: "large",
-    angle: 45,
-    radius: 30,
+    angle: 22,
+    radius: 38,
     tagline: "Google's multimodal AI model",
   },
-  // ── AI Chat (medium) ────────────────────────────────────────────────
   {
     id: "chatgpt",
     name: "ChatGPT",
@@ -65,7 +73,7 @@ export const TOOLS: Tool[] = [
     textColor: "#6ee7b7",
     size: "medium",
     angle: 5,
-    radius: 32,
+    radius: 42,
     tagline: "OpenAI's conversational AI",
   },
   {
@@ -77,8 +85,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(245,158,11,0.3)",
     textColor: "#fbbf24",
     size: "medium",
-    angle: 340,
-    radius: 32,
+    angle: 345,
+    radius: 42,
     tagline: "Anthropic's thoughtful AI",
   },
   {
@@ -90,8 +98,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(20,184,166,0.3)",
     textColor: "#2dd4bf",
     size: "small",
-    angle: 320,
-    radius: 44,
+    angle: 328,
+    radius: 58,
     tagline: "AI-powered search engine",
   },
   {
@@ -103,11 +111,11 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(59,130,246,0.3)",
     textColor: "#93c5fd",
     size: "small",
-    angle: 30,
-    radius: 46,
+    angle: 38,
+    radius: 58,
     tagline: "Microsoft's AI assistant",
   },
-  // ── Image generation ────────────────────────────────────────────────
+  // ── Image generation ──────────────────────────────────────────────────
   {
     id: "midjourney",
     name: "Midjourney",
@@ -117,8 +125,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(236,72,153,0.3)",
     textColor: "#f9a8d4",
     size: "medium",
-    angle: 135,
-    radius: 32,
+    angle: 120,
+    radius: 42,
     tagline: "Stunning AI image creation",
   },
   {
@@ -130,8 +138,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(249,115,22,0.3)",
     textColor: "#fb923c",
     size: "small",
-    angle: 155,
-    radius: 44,
+    angle: 140,
+    radius: 56,
     tagline: "OpenAI's image generator",
   },
   {
@@ -143,8 +151,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(139,92,246,0.3)",
     textColor: "#c4b5fd",
     size: "small",
-    angle: 115,
-    radius: 44,
+    angle: 105,
+    radius: 56,
     tagline: "Open-source image AI",
   },
   {
@@ -156,11 +164,11 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(16,185,129,0.3)",
     textColor: "#34d399",
     size: "small",
-    angle: 100,
-    radius: 54,
+    angle: 155,
+    radius: 46,
     tagline: "AI design for everyone",
   },
-  // ── Video generation ────────────────────────────────────────────────
+  // ── Video generation ──────────────────────────────────────────────────
   {
     id: "runway",
     name: "Runway",
@@ -170,8 +178,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(239,68,68,0.3)",
     textColor: "#fca5a5",
     size: "medium",
-    angle: 225,
-    radius: 32,
+    angle: 220,
+    radius: 42,
     tagline: "AI video generation studio",
   },
   {
@@ -183,8 +191,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(168,85,247,0.3)",
     textColor: "#d8b4fe",
     size: "small",
-    angle: 210,
-    radius: 44,
+    angle: 205,
+    radius: 56,
     tagline: "AI video with avatars",
   },
   {
@@ -196,11 +204,11 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(59,130,246,0.3)",
     textColor: "#7dd3fc",
     size: "small",
-    angle: 245,
-    radius: 44,
+    angle: 238,
+    radius: 56,
     tagline: "Google's AI video creator",
   },
-  // ── Audio generation ────────────────────────────────────────────────
+  // ── Audio generation ──────────────────────────────────────────────────
   {
     id: "elevenlabs",
     name: "ElevenLabs",
@@ -210,8 +218,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(245,158,11,0.3)",
     textColor: "#fde68a",
     size: "medium",
-    angle: 270,
-    radius: 32,
+    angle: 275,
+    radius: 42,
     tagline: "AI voice and audio synthesis",
   },
   {
@@ -223,11 +231,11 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(20,184,166,0.3)",
     textColor: "#5eead4",
     size: "small",
-    angle: 290,
-    radius: 46,
+    angle: 295,
+    radius: 56,
     tagline: "AI meeting transcription",
   },
-  // ── Productivity ────────────────────────────────────────────────────
+  // ── Productivity ───────────────────────────────────────────────────────
   {
     id: "notion-ai",
     name: "Notion AI",
@@ -237,8 +245,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(250,250,250,0.25)",
     textColor: "rgba(250,250,250,0.7)",
     size: "medium",
-    angle: 180,
-    radius: 34,
+    angle: 178,
+    radius: 44,
     tagline: "AI-powered workspace",
   },
   {
@@ -250,8 +258,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(236,72,153,0.3)",
     textColor: "#f472b6",
     size: "small",
-    angle: 195,
-    radius: 46,
+    angle: 192,
+    radius: 58,
     tagline: "AI presentation builder",
   },
   {
@@ -263,11 +271,10 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(239,68,68,0.3)",
     textColor: "#fca5a5",
     size: "small",
-    angle: 165,
-    radius: 46,
+    angle: 163,
+    radius: 58,
     tagline: "Chat with your documents",
   },
-  // ── Writing / Copy ───────────────────────────────────────────────────
   {
     id: "copyai",
     name: "Copy.ai",
@@ -277,8 +284,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(99,102,241,0.3)",
     textColor: "#a5b4fc",
     size: "small",
-    angle: 70,
-    radius: 48,
+    angle: 60,
+    radius: 60,
     tagline: "AI copywriting assistant",
   },
   {
@@ -290,11 +297,11 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(249,115,22,0.3)",
     textColor: "#fdba74",
     size: "small",
-    angle: 55,
-    radius: 50,
+    angle: 48,
+    radius: 62,
     tagline: "AI marketing copywriter",
   },
-  // ── Dev / ML ─────────────────────────────────────────────────────────
+  // ── Dev / ML ───────────────────────────────────────────────────────────
   {
     id: "huggingface",
     name: "Hugging Face",
@@ -304,8 +311,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(245,158,11,0.3)",
     textColor: "#fcd34d",
     size: "small",
-    angle: 80,
-    radius: 54,
+    angle: 76,
+    radius: 60,
     tagline: "Open-source ML hub",
   },
   {
@@ -317,8 +324,8 @@ export const TOOLS: Tool[] = [
     glowColor: "rgba(16,185,129,0.3)",
     textColor: "#6ee7b7",
     size: "small",
-    angle: 62,
-    radius: 58,
+    angle: 88,
+    radius: 64,
     tagline: "Run AI models in the cloud",
   },
 ];
@@ -328,4 +335,4 @@ export function getToolById(id: string): Tool | undefined {
 }
 
 export const READY_TOOLS = TOOLS.filter((t) => t.ready);
-export const DEV_TOOLS = TOOLS.filter((t) => !t.ready);
+export const DEV_TOOLS   = TOOLS.filter((t) => !t.ready);
