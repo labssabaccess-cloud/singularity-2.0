@@ -7,11 +7,13 @@ import { getToolById } from "@/lib/tools";
 import { getPromptConfig } from "@/lib/singularityPrompts";
 import { markCompleted } from "@/lib/progress";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+const FEEDBACK_URL = "https://forms.gle/SSYGsUrGqch8VeMV8";
+
+// ─── Types ───────────────────────────────────────────────────────────────────────────────
 type Message = { role: "user" | "assistant"; content: string };
 type ConceptCard = { id: string; term: string; excerpt: string };
 
-// ─── SSR-safe particles ───────────────────────────────────────────────────────
+// ─── SSR-safe particles ────────────────────────────────────────────────────────────────
 function seededVal(i: number, salt: number) {
   const x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
   return x - Math.floor(x);
@@ -43,7 +45,7 @@ function AmbientParticles({ glowColor }: { glowColor: string }) {
             width: p.size,
             height: p.size,
             borderRadius: "50%",
-            background: glowColor.replace("0.55", "0.4").replace("0.3", "0.3"),
+            background: glowColor,
           }}
           animate={{ y: [0, -30, 0], opacity: [0, 0.45, 0] }}
           transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
@@ -53,10 +55,34 @@ function AmbientParticles({ glowColor }: { glowColor: string }) {
   );
 }
 
-// ─── Concept card extraction ──────────────────────────────────────────────────
+// ─── Tool-specific welcome icon ────────────────────────────────────────────────────────
+function ToolIcon({ toolId, textColor }: { toolId: string; textColor: string }) {
+  if (toolId === "prompt-engineering") {
+    return (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+        <text x="4" y="23" fontSize="20" fontFamily="'SF Mono','Fira Code',monospace" fill={textColor} opacity="0.9">{"{ }"}</text>
+        <circle cx="27" cy="8" r="3" fill={textColor} opacity="0.6" />
+      </svg>
+    );
+  }
+  if (toolId === "gemini") {
+    // Gemini 4-pointed star mark
+    return (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
+        <path
+          d="M16 2 C16 10 22 16 30 16 C22 16 16 22 16 30 C16 22 10 16 2 16 C10 16 16 10 16 2Z"
+          fill={textColor}
+          opacity="0.9"
+        />
+      </svg>
+    );
+  }
+  return <span style={{ fontSize: 26, lineHeight: 1 }}>❖</span>;
+}
+
+// ─── Concept card extraction from AI response ─────────────────────────────────────────
 function extractConcepts(text: string): ConceptCard[] {
   const concepts: ConceptCard[] = [];
-  // Match **bold terms** as concepts
   const boldRegex = /\*\*([^*]{3,40})\*\*/g;
   const seen = new Set<string>();
   let match;
@@ -64,14 +90,12 @@ function extractConcepts(text: string): ConceptCard[] {
     const term = match[1].trim();
     if (seen.has(term)) continue;
     seen.add(term);
-    // Find the surrounding sentence as excerpt (up to 100 chars after)
     const start = Math.max(0, match.index - 20);
     const raw = text.slice(start, match.index + 120).replace(/\*\*/g, "");
     const excerpt = raw.replace(/^[^A-Z]/, "").slice(0, 90) + "…";
     concepts.push({ id: `${term}-${concepts.length}`, term, excerpt });
     if (concepts.length >= 6) break;
   }
-  // Fallback: grab first 3 lines as concept stubs if no bold found
   if (concepts.length === 0) {
     const lines = text.split("\n").filter((l) => l.trim().length > 20).slice(0, 3);
     lines.forEach((line, i) => {
@@ -84,7 +108,7 @@ function extractConcepts(text: string): ConceptCard[] {
   return concepts;
 }
 
-// ─── Markdown renderer ────────────────────────────────────────────────────────
+// ─── Markdown renderer ──────────────────────────────────────────────────────────────────────
 function MarkdownLine({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
@@ -144,17 +168,19 @@ function MessageBubble({ msg, isStreaming }: { msg: Message; isStreaming: boolea
   );
 }
 
-// ─── Concept Board (left panel) ───────────────────────────────────────────────
+// ─── Concept Board ────────────────────────────────────────────────────────────────────────
 function ConceptBoard({
   concepts,
   toolTextColor,
   toolGlowColor,
   onAsk,
+  isSeeded,
 }: {
   concepts: ConceptCard[];
   toolTextColor: string;
   toolGlowColor: string;
   onAsk: (question: string) => void;
+  isSeeded: boolean;
 }) {
   return (
     <div
@@ -171,10 +197,10 @@ function ConceptBoard({
     >
       <div style={{ marginBottom: "4px" }}>
         <p style={{ fontSize: "0.65rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(250,250,250,0.25)" }}>
-          Concept Board
+          {isSeeded ? "Start here" : "Concept Board"}
         </p>
         <p style={{ fontSize: "0.7rem", color: "rgba(250,250,250,0.18)", marginTop: 3 }}>
-          Click any concept to ask about it
+          {isSeeded ? "Tap any concept to explore it" : "Click any concept to ask about it"}
         </p>
       </div>
 
@@ -205,10 +231,10 @@ function ConceptBoard({
             key={c.id}
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.07, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             whileHover={{ scale: 1.02, x: 4 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => onAsk(`Can you explain "${c.term}" in more detail?`)}
+            onClick={() => onAsk(`Can you teach me about "${c.term}"? Give a clear explanation with a practical example.`)}
             style={{
               textAlign: "left",
               padding: "10px 12px",
@@ -225,35 +251,38 @@ function ConceptBoard({
                 fontSize: "0.75rem",
                 fontWeight: 600,
                 color: toolTextColor,
-                marginBottom: 4,
+                marginBottom: isSeeded ? 0 : 4,
                 lineHeight: 1.3,
               }}
             >
               {c.term}
             </div>
+            {!isSeeded && c.excerpt && (
+              <div
+                style={{
+                  fontSize: "0.66rem",
+                  color: "rgba(250,250,250,0.3)",
+                  lineHeight: 1.5,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  marginBottom: 4,
+                }}
+              >
+                {c.excerpt}
+              </div>
+            )}
             <div
               style={{
-                fontSize: "0.66rem",
-                color: "rgba(250,250,250,0.3)",
-                lineHeight: 1.5,
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {c.excerpt}
-            </div>
-            <div
-              style={{
-                marginTop: 6,
+                marginTop: 5,
                 fontSize: "0.6rem",
                 color: toolTextColor,
-                opacity: 0.6,
+                opacity: 0.5,
                 letterSpacing: "0.06em",
               }}
             >
-              tap to ask →
+              tap to explore →
             </div>
           </motion.button>
         ))}
@@ -262,7 +291,64 @@ function ConceptBoard({
   );
 }
 
-// ─── API error state ───────────────────────────────────────────────────────────
+// ─── Feedback nudge toast ───────────────────────────────────────────────────────────────
+function FeedbackNudge({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      style={{
+        position: "fixed",
+        bottom: 80,
+        right: 20,
+        zIndex: 50,
+        background: "rgba(20,20,32,0.96)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: 14,
+        padding: "12px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+        maxWidth: 280,
+      }}
+    >
+      <span style={{ fontSize: 20 }}>💬</span>
+      <div style={{ flex: 1 }}>
+        <p style={{ fontSize: "0.78rem", color: "rgba(250,250,250,0.8)", fontWeight: 600, marginBottom: 2 }}>
+          Enjoying this?
+        </p>
+        <a
+          href={FEEDBACK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: "0.72rem", color: "#818cf8", textDecoration: "none" }}
+        >
+          Share your feedback →
+        </a>
+      </div>
+      <button
+        onClick={onDismiss}
+        aria-label="Dismiss feedback nudge"
+        style={{
+          background: "none",
+          border: "none",
+          color: "rgba(250,250,250,0.25)",
+          cursor: "pointer",
+          fontSize: 16,
+          lineHeight: 1,
+          padding: 2,
+        }}
+      >
+        ×
+      </button>
+    </motion.div>
+  );
+}
+
+// ─── API error state ─────────────────────────────────────────────────────────────────────
 function ApiErrorState({ toolName, router }: { toolName: string; router: ReturnType<typeof useRouter> }) {
   return (
     <motion.div
@@ -292,7 +378,7 @@ function ApiErrorState({ toolName, router }: { toolName: string; router: ReturnT
           {toolName} is warming up
         </h2>
         <p style={{ fontSize: "0.82rem", color: "rgba(250,250,250,0.4)", maxWidth: 320, lineHeight: 1.6 }}>
-          The AI engine hasn't been configured yet. This experience will be live very soon — check back shortly!
+          The AI engine hasn&apos;t been configured yet. This experience will be live very soon — check back shortly!
         </p>
       </div>
       <button
@@ -314,7 +400,7 @@ function ApiErrorState({ toolName, router }: { toolName: string; router: ReturnT
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Main page ──────────────────────────────────────────────────────────────────────────────
 export default function SingularityToolPage() {
   const { toolId } = useParams<{ toolId: string }>();
   const router = useRouter();
@@ -326,8 +412,18 @@ export default function SingularityToolPage() {
   const [streaming, setStreaming] = useState(false);
   const [entered, setEntered] = useState(false);
   const [apiError, setApiError] = useState(false);
-  const [concepts, setConcepts] = useState<ConceptCard[]>([]);
   const [hasCompleted, setHasCompleted] = useState(false);
+  const [showFeedbackNudge, setShowFeedbackNudge] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+
+  // Concept board: start with seed concepts, then update from AI responses
+  const seedCards: ConceptCard[] = useMemo(
+    () => config.seedConcepts.map((term, i) => ({ id: `seed-${i}`, term, excerpt: "" })),
+    [config.seedConcepts]
+  );
+  const [concepts, setConcepts] = useState<ConceptCard[]>(seedCards);
+  const [isSeeded, setIsSeeded] = useState(config.seedConcepts.length > 0);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -342,19 +438,33 @@ export default function SingularityToolPage() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
-  // Extract concepts from latest assistant message
+  // Extract concepts from AI responses; replace seed once there's real content
   useEffect(() => {
     const last = [...messages].reverse().find((m) => m.role === "assistant");
     if (last && last.content.length > 80) {
       const extracted = extractConcepts(last.content);
-      if (extracted.length > 0) setConcepts(extracted);
+      if (extracted.length > 0) {
+        setConcepts(extracted);
+        setIsSeeded(false);
+      }
     }
   }, [messages]);
+
+  // Show feedback nudge after 3 AI exchanges (6 messages)
+  useEffect(() => {
+    if (!nudgeDismissed && messages.length >= 6 && !showFeedbackNudge) {
+      const t = setTimeout(() => setShowFeedbackNudge(true), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [messages.length, nudgeDismissed, showFeedbackNudge]);
 
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || streaming) return;
+
+      // When sending a message, replace seed concepts with real ones from the response
+      if (isSeeded) setIsSeeded(false);
 
       const userMsg: Message = { role: "user", content: trimmed };
       const nextMessages = [...messages, userMsg];
@@ -392,7 +502,6 @@ export default function SingularityToolPage() {
           setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content: accumulated }]);
         }
 
-        // Mark as completed after first successful exchange
         if (!hasCompleted && tool) {
           markCompleted(tool.id);
           setHasCompleted(true);
@@ -406,7 +515,7 @@ export default function SingularityToolPage() {
         setStreaming(false);
       }
     },
-    [messages, streaming, tool, hasCompleted]
+    [messages, streaming, tool, hasCompleted, isSeeded]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -417,7 +526,7 @@ export default function SingularityToolPage() {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "#080810", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {/* Ambient */}
+      {/* Ambient glow */}
       <div aria-hidden style={{ position: "fixed", inset: 0, background: `radial-gradient(ellipse 65% 45% at 50% 35%, ${tool.glowColor.replace("0.55", "0.06").replace("0.3", "0.04")} 0%, transparent 70%)`, pointerEvents: "none", zIndex: 0 }} />
       <AmbientParticles glowColor={tool.glowColor} />
 
@@ -433,6 +542,7 @@ export default function SingularityToolPage() {
           backdropFilter: "blur(12px)", background: "rgba(8,8,16,0.8)", flexShrink: 0,
         }}
       >
+        {/* Left: nav + tool badge */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <button
             onClick={() => router.push("/launcher")}
@@ -477,7 +587,34 @@ export default function SingularityToolPage() {
             </motion.div>
           )}
         </div>
-        <span style={{ fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(250,250,250,0.18)", fontFamily: "'SF Mono','Fira Code',monospace" }}>Singularity</span>
+
+        {/* Right: feedback + brand */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <a
+            href={FEEDBACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Share feedback"
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              padding: "5px 10px",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 8,
+              color: "rgba(250,250,250,0.32)",
+              fontSize: "0.72rem",
+              textDecoration: "none",
+              letterSpacing: "0.03em",
+              transition: "all 0.18s",
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Feedback
+          </a>
+          <span style={{ fontSize: "0.68rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(250,250,250,0.18)", fontFamily: "'SF Mono','Fira Code',monospace" }}>Singularity</span>
+        </div>
       </motion.header>
 
       {/* API Error overlay */}
@@ -511,6 +648,7 @@ export default function SingularityToolPage() {
               toolTextColor={tool.textColor}
               toolGlowColor={tool.glowColor}
               onAsk={sendMessage}
+              isSeeded={isSeeded}
             />
           </motion.div>
 
@@ -540,20 +678,21 @@ export default function SingularityToolPage() {
                     style={{
                       width: 72, height: 72, borderRadius: "50%", background: tool.color,
                       border: `1.5px solid ${tool.glowColor.replace("0.55", "0.4").replace("0.3", "0.3")}`,
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26,
+                      display: "flex", alignItems: "center", justifyContent: "center",
                     }}
                   >
-                    {tool.id === "prompt-engineering" ? "✦" : "🔷"}
+                    <ToolIcon toolId={tool.id} textColor={tool.textColor} />
                   </motion.div>
                   <div>
                     <h1 style={{ fontSize: "clamp(1.2rem, 2.5vw, 1.7rem)", fontWeight: 700, color: "#FAFAFA", letterSpacing: "-0.02em", marginBottom: 6 }}>
                       {config.welcomeTitle}
                     </h1>
-                    <p style={{ fontSize: "0.84rem", color: "rgba(250,250,250,0.4)", maxWidth: 340 }}>
+                    <p style={{ fontSize: "0.84rem", color: "rgba(250,250,250,0.4)", maxWidth: 360 }}>
                       {config.welcomeSubtitle}
                     </p>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 500 }}>
+                  {/* Suggested prompts — 2 rows of 5 */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 560 }}>
                     {config.suggestedPrompts.map((prompt) => (
                       <motion.button
                         key={prompt}
@@ -570,6 +709,9 @@ export default function SingularityToolPage() {
                       </motion.button>
                     ))}
                   </div>
+                  <p style={{ fontSize: "0.68rem", color: "rgba(250,250,250,0.15)", letterSpacing: "0.04em" }}>
+                    Or tap a concept on the left to start →
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -587,7 +729,6 @@ export default function SingularityToolPage() {
                   {messages.map((msg, i) => (
                     <MessageBubble key={i} msg={msg} isStreaming={i === messages.length - 1 && streaming} />
                   ))}
-                  {/* Inline api error after messages */}
                   {apiError && (
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
@@ -598,7 +739,7 @@ export default function SingularityToolPage() {
                         fontSize: "0.8rem", color: "rgba(250,100,100,0.8)", marginBottom: 12,
                       }}
                     >
-                      ⚠️ Couldn't reach the AI engine. The API key may not be configured yet — please try again shortly.
+                      ⚠️ Couldn&apos;t reach the AI engine. Please try again shortly.
                     </motion.div>
                   )}
                 </div>
@@ -652,6 +793,7 @@ export default function SingularityToolPage() {
                   whileHover={{ scale: streaming ? 1 : 1.07 }}
                   whileTap={{ scale: 0.94 }}
                   onClick={() => { if (streaming) { abortRef.current?.abort(); setStreaming(false); } else { sendMessage(input); } }}
+                  aria-label={streaming ? "Stop" : "Send"}
                   style={{
                     width: 42, height: 42, borderRadius: 11, flexShrink: 0,
                     background: streaming ? "rgba(239,68,68,0.14)" : input.trim() ? tool.color : "rgba(255,255,255,0.04)",
@@ -674,6 +816,13 @@ export default function SingularityToolPage() {
           </div>
         </div>
       )}
+
+      {/* Feedback nudge toast */}
+      <AnimatePresence>
+        {showFeedbackNudge && (
+          <FeedbackNudge onDismiss={() => { setShowFeedbackNudge(false); setNudgeDismissed(true); }} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
