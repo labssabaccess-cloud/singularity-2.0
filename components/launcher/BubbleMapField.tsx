@@ -149,7 +149,14 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
 
     const positions = TOOLS.map((tool) => {
       if (tool.size === "anchor") {
-        return { id: tool.id, cx, cy, x: cx - SIZE_MAP.anchor / 2, y: cy - SIZE_MAP.anchor / 2 };
+        return {
+          id: tool.id,
+          cx,
+          cy,
+          x: cx - SIZE_MAP.anchor / 2,
+          y: cy - SIZE_MAP.anchor / 2,
+          ready: tool.ready,
+        };
       }
       const angleRad = (tool.angle * Math.PI) / 180;
       const r = maxR * (tool.radius / 60);
@@ -161,6 +168,7 @@ export default function BubbleMapField({ onToolClick }: BubbleMapFieldProps) {
         cy: py,
         x: px - SIZE_MAP[tool.size] / 2,
         y: py - SIZE_MAP[tool.size] / 2,
+        ready: tool.ready,
       };
     });
     return { positions, centerX: cx, centerY: cy };
